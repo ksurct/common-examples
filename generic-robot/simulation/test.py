@@ -100,62 +100,83 @@ class RobotSim():
 
 # Stolen from C:
 # https://github.com/3DSage/OpenGL-Raycaster_v1/blob/master/3DSage_Raycaster_v1.c
-# int r,mx,my,mp,dof,side; float vx,vy,rx,ry,ra,xo,yo,disV,disH; 
-# 
-# ra=FixAng(pa+30);                                                              //ray set back 30 degrees
-# 
-# for(r=0;r<60;r++)
-# {
-#  //---Vertical--- 
-#  dof=0; side=0; disV=100000;
-#  float Tan=tan(degToRad(ra));
-#       if(cos(degToRad(ra))> 0.001){ rx=(((int)px>>6)<<6)+64;      ry=(px-rx)*Tan+py; xo= 64; yo=-xo*Tan;}//looking left
-#  else if(cos(degToRad(ra))<-0.001){ rx=(((int)px>>6)<<6) -0.0001; ry=(px-rx)*Tan+py; xo=-64; yo=-xo*Tan;}//looking right
-#  else { rx=px; ry=py; dof=8;}                                                  //looking up or down. no hit  
-#
-#  while(dof<8) 
-#  { 
-#   mx=(int)(rx)>>6; my=(int)(ry)>>6; mp=my*mapX+mx;                     
-#   if(mp>0 && mp<mapX*mapY && map[mp]==1){ dof=8; disV=cos(degToRad(ra))*(rx-px)-sin(degToRad(ra))*(ry-py);}//hit         
-#   else{ rx+=xo; ry+=yo; dof+=1;}                                               //check next horizontal
-#  } 
-#  vx=rx; vy=ry;
 #
 
-    def rayCast(self):
-        r, mx, my, mp, dof = 0,0,0,0,0,
-        vx,vy,rx,ry,ra,xo,yo,disV,disH = 0,0,0,0,0,0,0,0,0
-        cube = self.course.xLength * self.course.yLength
-        px = self.robotBody.position[0]
-        py = self.robotBody.position[1]
-        pa = self.robotBody.angle
-        ra = -self.robotBody.angle + pi / 2
-        print("angle = ", ra * 180 / pi)
-        dof=0; disV = 100000
-        Tan = tan(ra)
-        if (cos(ra)> 0.001):
-            rx=((px // Course.xLength) * Course.xLength)+Course.xLength
-            ry=(px-rx)*Tan+py; xo= self.course.pxSizeX; yo=-xo*Tan
-        elif(cos(ra)<-0.001):
-            rx=((px//Course.xLength)*Course.xLength) - 0.0001
-            ry=(px-rx)*Tan+py; xo=-self.course.pxSizeX; yo=-xo*Tan
+    def rayCast(self, xStart,yStart, angle):
+        xIter,yIter,xOffset,yOffset,disV,distance = 0,0,0,0,0,0
+        color = 0
+        colorV = 0
+        disV = 100000
+        loopX = Course.xLength
+        # --- Verticle lines ----
+        Tan = tan(angle)
+        if (cos(angle)> 0.001):
+            xIter=((xStart // self.course.pxSizeX) * self.course.pxSizeX)+self.course.pxSizeX + 0.0001
+            yIter=(xStart-xIter)*Tan+yStart
+            xOffset= self.course.pxSizeX
+            yOffset=-xOffset*Tan
+        elif(cos(angle)<-0.001):
+            xIter=((xStart//self.course.pxSizeX)*self.course.pxSizeX) - 0.0001
+            yIter=(xStart-xIter)*Tan+yStart
+            xOffset=-self.course.pxSizeX
+            yOffset=-xOffset*Tan
         else:
-            rx=px; ry=py; dof=8
-        while(dof<8):
-            mx=int((rx)//self.course.pxSizeX)
-            my=int((ry)//self.course.pxSizeY)
-            if(mx > 0 and my > 0 and Course.get(mx,my) == 1): #Course.get(mx,my)==1
-                dof=8; disV=cos(ra)*(rx-px)-sin(ra)*(ry-py)
+            xIter=xStart; yIter=yStart
+            loopX = 0
+        for i in range(loopX):
+            mx=int((xIter)//self.course.pxSizeX)
+            my=int((yIter)//self.course.pxSizeY)
+            if(mx >= 0 and my >= 0 and Course.get(mx,my) != 0):
+                disV=cos(angle)*(xIter-xStart)-sin(angle)*(yIter-yStart)
+                colorV = Course.get(mx,my)
                 break
             else:
-                rx+=xo; ry+=yo; dof+=1
-        vx=rx; vy=ry
+                #pygame.draw.circle(self.display, (0,0,255), (xIter,yIter), 3)
+                xIter+=xOffset; yIter+=yOffset
+        vx = xIter
+        vy = yIter
+
+        # --- Horizontal lines ----
+        if (Tan == 0):
+            Tan = 0.00000001
+        Tan = 1/Tan
+        if (sin(angle)> 0.001):
+            yIter=((yStart//self.course.pxSizeY)*self.course.pxSizeY) - 0.0001
+            xIter=(yStart-yIter)*Tan+xStart
+            yOffset= -self.course.pxSizeY
+            xOffset=-yOffset*Tan
+        elif(sin(angle)<-0.001):
+            yIter=((yStart // self.course.pxSizeY) * self.course.pxSizeY)+self.course.pxSizeY + 0.0001
+            xIter=(yStart-yIter)*Tan+xStart
+            yOffset=self.course.pxSizeY
+            xOffset=-yOffset*Tan
+        else:
+            xIter=xStart; yIter=yStart
+            return (disV, colorV)
+        for i in range(Course.yLength):
+            mx=int((xIter)//self.course.pxSizeX)
+            my=int((yIter)//self.course.pxSizeY)
+            if(mx >= 0 and my >= 0 and Course.get(mx,my) != 0):
+                distance=cos(angle)*(xIter-xStart)-sin(angle)*(yIter-yStart)
+                color = Course.get(mx,my)
+                break
+            else:
+                #pygame.draw.circle(self.display, (255,0,0), (xIter,yIter), 3)
+                xIter+=xOffset; yIter+=yOffset
+        xIter; yIter
+        if (distance > disV or distance == 0):
+            distance = disV
+            color = colorV
+            xIter = vx
+            yIter = vy
         # Draw line from px py to rx ry
-        pygame.draw.line(self.display, (0, 255, 0), (px, py), (rx, ry), 1)
+        pygame.draw.line(self.display, (0, 255, 0), (xStart, yStart), (xIter, yIter), 1)
+        return (distance, color)
 
     def tick(self):
         self.time += self.timestep
-        self.rayCast()
+        for i in range(0, 360):
+            (distance, color) = self.rayCast(self.robotBody.position[0], self.robotBody.position[1],radians(i) + -self.robotBody.angle + pi/2)
         if (not self.stopped and self.endTime <= self.time):
             print("Stopped at ", self.time)
             self.stop()
