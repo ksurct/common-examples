@@ -1,8 +1,0 @@
-README.md
-pyproject.toml
-setup.cfg
-src/robot_sim/__init__.py
-src/robot_sim_ksurct.egg-info/PKG-INFO
-src/robot_sim_ksurct.egg-info/SOURCES.txt
-src/robot_sim_ksurct.egg-info/dependency_links.txt
-src/robot_sim_ksurct.egg-info/top_level.txt
