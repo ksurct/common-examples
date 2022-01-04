@@ -32,8 +32,8 @@ class Course():
         self.course = course
     
     def circle(self, x, y, radius, color):
-        for i in range(0,360):
-            self.set(cos(radians(i))*radius + x, sin(radians(i))*radius + y, color)
+        for i in range(0,360,1):
+            self.set(round(cos(radians(i))*radius + x), round(sin(radians(i))*radius + y), color)
 
     def line(self, x1,y1,x2,y2, color):
         slope = 1000 
@@ -197,7 +197,7 @@ class RobotSim():
 
     def tick(self):
         self.time += self.timestep
-        for i in range(-20, 20):
+        for i in range(0, 360):
             self.course.rayCast(self.robotBody.position[0], self.robotBody.position[1],radians(i) + -self.robotBody.angle + pi/2)
         if (not self.stopped and self.endTime <= self.time):
             print("Stopped at ", self.time)
@@ -211,9 +211,13 @@ def run():
     drawOpt = pymunk.pygame_util.DrawOptions(display)
     clock = pygame.time.Clock()
     space = pymunk.Space()
-    course = Course(pxX, pxY, 20, 20, display)
+    course = Course(pxX, pxY, 100, 100, display)
     course.createOuterWalls((255, 255, 255, 255))
-    course.circle(10,10, 3, (0,0,255,255))
+    course.circle(40,100, 20, (0,0,255,255))
+    course.circle(70,10, 20, (0,0,255,255))
+    course.circle(20,80, 20, (0,0,255,255))
+    course.circle(10,90, 20, (0,0,255,255))
+    course.circle(250,250, 100, (0,255,255,255))
     FPS = 50
     course.createCourse(space)
     robot = RobotSim((100,100), 100, 50, 1/FPS, space, course)
@@ -226,9 +230,9 @@ def run():
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_LEFT:
                 robot.rotate(90, -45)
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_UP:
-                robot.move(100, -50)
+                robot.move(100, -200)
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_DOWN:
-                robot.move(100, 50)
+                robot.move(100, 200)
             elif event.type == pygame.KEYUP and event.key == pygame.K_RIGHT:
                 robot.rotate(90, 45)
         # DO stuff
