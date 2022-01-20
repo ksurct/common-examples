@@ -1,5 +1,6 @@
 import robot_sim
 import random
+import pygame
 
 # Target FPS
 FPS = 60
@@ -23,7 +24,18 @@ def algorithm(robot, time, events):
     # 'time' time since start of program in seconds
     sensorData = robot.getSensorData()
     cameraData = robot.getCameraData()
-
+    for event in events:
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            return
+        elif event.type == pygame.KEYDOWN and event.key == pygame.K_LEFT:
+            robot.rotate(-90, 45)
+        elif event.type == pygame.KEYDOWN and event.key == pygame.K_UP:
+            robot.move(100, 200)
+        elif event.type == pygame.KEYDOWN and event.key == pygame.K_DOWN:
+            robot.move(-100, 200)
+        elif event.type == pygame.KEYUP and event.key == pygame.K_RIGHT:
+            robot.rotate(90, 45)
     # in degrees
     angle = robot.getAngle()
     # Probable x,y coordinates

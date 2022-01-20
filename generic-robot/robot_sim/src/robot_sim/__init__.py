@@ -361,20 +361,7 @@ def run(course, robot, FPS):
     course._createCourse(space)
 
     while True:
-        events = pygame.event.get()
-        for event in events:
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                return
-            elif event.type == pygame.KEYDOWN and event.key == pygame.K_LEFT:
-                robot.rotate(-90, 45)
-            elif event.type == pygame.KEYDOWN and event.key == pygame.K_UP:
-                robot.move(-100, 200)
-            elif event.type == pygame.KEYDOWN and event.key == pygame.K_DOWN:
-                robot.move(100, 200)
-            elif event.type == pygame.KEYUP and event.key == pygame.K_RIGHT:
-                robot.rotate(90, 45)
-        # DO stuff
+        events = pygame.event.get()        # DO stuff
 
         # show the front
 
