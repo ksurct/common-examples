@@ -130,8 +130,8 @@ class Sensor():
 
     def update(self, robot, angle, course):
         position = robot._getRelativePosition(self.x,self.y)
-        (distance, color) = course.rayCast(position[0], position[1], angle+self.angle, self.debug)
-        if (distance > self.d):
+        (distance, color) = course.rayCast(position[0], position[1], angle+self.angle, self.debug, self.d)
+        if (distance > self.d or distance == None):
             distance = -1
         self.data = distance
 
@@ -139,8 +139,9 @@ class Sensor():
         return self.data
 
 class Camera():
-    def __init__(self,x,y,angle,fieldOfView,splitCount,resolution,debug=False):
+    def __init__(self,x,y,angle,fieldOfView,splitCount,resolution,maxDistance=None,debug=False):
         self.debug = debug
+        self.maxDistance = maxDistance
         self.x = x
         self.y = y
         self.fieldOfView = fieldOfView
@@ -163,24 +164,30 @@ class Camera():
         oldColor = None
         value = start
         color = None
+        size = 0
         for i in range(0, self.resolution):
             override = None
             if (i >= nextSplit):
                 # Add the last color
                 oldColor = None
-                self.data[curSplit].append(color)
+                self.data[curSplit].append({"size": size, "color": color})
+                size = 0
                 curSplit = curSplit + 1
                 nextSplit += numRaysInSplit
                 override = (255,0,255,255)
-
-            (distance, color) = course.rayCast(position[0], position[1], angle + self.angle + radians(value), self.debug, override)
+            size = size + 1
+            (distance, color) = course.rayCast(
+                position[0], position[1], angle + self.angle + radians(value), self.debug, override, self.maxDistance)
 
             # When we encounter a new color we record the result to the split
             if (color != oldColor and oldColor != None):
-                self.data[curSplit].append(oldColor)
+                self.data[curSplit].append({"size": size, "color": oldColor})
+                size = 0
             oldColor = color
             value -= increment
-        self.data[curSplit].append(color)
+            if (color == None):
+                size = 0
+        self.data[curSplit].append({"size": size, "color": color})
 
     def getData(self):
         return self.data
@@ -243,7 +250,7 @@ class Course():
     # Stolen from C:
     # https://github.com/3DSage/OpenGL-Raycaster_v1/blob/master/3DSage_Raycaster_v1.c
     #
-    def rayCast(self, xStart,yStart, angle, dbg=False, overrideColor=None):
+    def rayCast(self, xStart,yStart, angle, dbg=False, overrideColor=None, maxDistance=None):
         xIter,yIter,xOffset,yOffset,disV,distance = 0,0,0,0,0,0
         color = 0
         colorV = 0
@@ -292,6 +299,9 @@ class Course():
             xOffset=-yOffset*Tan
         else:
             xIter=xStart; yIter=yStart
+            if (maxDistance != None and disV > maxDistance):
+                disV = None
+                colorV = None
             return (disV, colorV)
         for i in range(self.yLength):
             mx=int((xIter)//self.pxSizeX)
@@ -309,7 +319,10 @@ class Course():
             xIter = vx
             yIter = vy
         # Draw line from px py to rx ry
-        if (self.display != None and dbg):
+        if (maxDistance != None and distance > maxDistance):
+            distance = None
+            color = None
+        elif (self.display != None and dbg):
             pygame.draw.line(self.display,
             color if overrideColor == None else overrideColor,
             (xStart, yStart), (xIter, yIter), 1)
@@ -362,8 +375,10 @@ def run(course, robot, FPS):
 
     while True:
         events = pygame.event.get()        # DO stuff
-
-        # show the front
+        for event in events:
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                return
 
         display.fill(pygame.Color("black"))
         space.debug_draw(drawOpt)

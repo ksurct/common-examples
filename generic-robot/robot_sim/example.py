@@ -36,6 +36,9 @@ def algorithm(robot, time, events):
             robot.move(-100, 200)
         elif event.type == pygame.KEYUP and event.key == pygame.K_RIGHT:
             robot.rotate(90, 45)
+        elif event.type == pygame.KEYUP and event.key == pygame.K_q:
+            robot.stop()
+
     # in degrees
     angle = robot.getAngle()
     # Probable x,y coordinates
@@ -50,14 +53,14 @@ def algorithm(robot, time, events):
         for split in camera:
             print("[", end="")
             for object in split:
-                if (object == blue):
-                    print("blue,", end="")
-                elif (object == white):
-                    print("white,", end="")
-                elif (object == green):
-                    print("green,", end="")
-                elif (object == red):
-                    print("red,", end="")
+                if (object['color'] == blue):
+                    print("(blue,{}),".format(object['size']), end="")
+                elif (object['color'] == white):
+                    print("(white,{}),".format(object['size']), end="")
+                elif (object['color'] == green):
+                    print("(green,{}),".format(object['size']), end="")
+                elif (object['color'] == red):
+                    print("(red,{}),".format(object['size']), end="")
             print("]")
 
     if (sensorData['Front'] < 100 and sensorData['Front'] != -1):
@@ -129,7 +132,8 @@ cameras = {
                    fieldOfView=90,
                    splitCount=3, # How many splits are in the camera when showing object colors
                    resolution=40, # How many rays are in the field of view
-                   debug=True
+                   debug=True,
+                   maxDistance=300
                    )
 }
 
