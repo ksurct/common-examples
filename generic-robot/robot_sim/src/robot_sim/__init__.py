@@ -1,3 +1,4 @@
+import random
 import pymunk.pygame_util
 from pymunk import Vec2d
 import pygame
@@ -11,8 +12,19 @@ class RobotSim():
         width,
         algorithm=None,
         sensors=None,
-        cameras=None
+        cameras=None,
+        startingAngle=0,
+        positionError=0,
+        angleError=0,
+        moveError=0,
+        rotationError=0,
+        sensorError=0,
         ):
+        self.positionError = positionError
+        self.angleError = angleError
+        self.moveError = moveError
+        self.rotationError = rotationError
+        self.sensorError = sensorError
         self.length = length
         self.width = width
         self.cameras = cameras
@@ -22,6 +34,7 @@ class RobotSim():
         self.timestep = 0
         self.robotBody = pymunk.Body(1, float("inf"))
         self.robotBody.position = location
+        self.robotBody.angle = radians(startingAngle)
         self.robotShape = pymunk.Poly(self.robotBody, [(0,0),(self.width,0),(self.width,self.length),(0,self.length)])
         self.robotShape.sensor = False
         self.robotShape.color = (255, 100, 100, 100)
@@ -53,22 +66,27 @@ class RobotSim():
         if (y != 0):
             angle = -atan(x/y)
         return (
-            self.robotBody.position[0] + sin(-self.robotBody.angle - angle)*h,
-            self.robotBody.position[1] + cos(-self.robotBody.angle - angle)*h
+            (self.robotBody.position[0] + sin(-self.robotBody.angle - angle)*h),
+            (self.robotBody.position[1] + cos(-self.robotBody.angle - angle)*h)
         )
 
     # Public:
     def getAngle(self):
-        return self.robotBody.angle * 180 / pi
+        return (self.robotBody.angle * 180 / pi) + (random.uniform(-self.angleError, self.angleError))
 
     def getPosition(self):
-        return self._getRelativePosition(self.width/2, self.length/2)
+        val = self._getRelativePosition(self.width/2, self.length/2)
+        return  (
+            (val[0] / self.course.pixelsPerMeter) + (random.uniform(-self.positionError, self.positionError)),
+            (val[1] / self.course.pixelsPerMeter) + (random.uniform(-self.positionError, self.positionError))
+        )
 
     def getSensorData(self):
         ret = {}
         for sensor in self.sensors.keys():
             self.sensors[sensor].update(self, -self.robotBody.angle+pi/2, self.course)
-            ret[sensor] = self.sensors[sensor].getData()
+            data = self.sensors[sensor].getData()
+            ret[sensor] = data if data == -1 else data + (random.uniform(-self.sensorError, self.sensorError))
         return ret
 
     def getCameraData(self):
@@ -83,12 +101,21 @@ class RobotSim():
     
     def constantMove(self, speed):
         self.stop()
-        self.robotBody.velocity = (-speed * Vec2d(0, 1)).rotated(self.robotBody.angle)
+        error = (random.uniform(-self.moveError, self.moveError))
+        if (speed == 0):
+            error = 0
+        speed = speed + error
+        speed = self.course.pixelsPerMeter * -speed
+        self.robotBody.velocity = (speed * Vec2d(0, 1)).rotated(self.robotBody.angle)
         self.endTime = -1
         self.stopped = False
 
     def constantRotate(self, speed):
         self.stop()
+        error = (random.uniform(-self.rotationError, self.rotationError))
+        if (speed == 0):
+            error = 0
+        speed = speed + error
         # convert to rad
         radiansPerSecond = speed * (pi / 180)
         self.robotBody.angular_velocity = radiansPerSecond
@@ -97,18 +124,24 @@ class RobotSim():
 
     def move(self, speed, distance):
         self.stop()
+        error = (random.uniform(-self.moveError, self.moveError))
+        speed = speed * self.course.pixelsPerMeter
+        distance = distance * self.course.pixelsPerMeter
         if (speed == 0):
             return
+        speed = speed + error
         self.robotBody.velocity = (-speed * Vec2d(0, 1)).rotated(self.robotBody.angle)
         self.endTime = distance / abs(speed) + self.time - self.timestep
         self.stopped = False
 
     def rotate(self, speed, degrees):
         self.stop()
+        error = (random.uniform(-self.moveError, self.moveError))
         if (speed == 0):
             return
         # convert to rad
         degrees = degrees * (pi / 180)
+        speed = speed + error
         radiansPerSecond = speed * (pi / 180)
         self.robotBody.angular_velocity = radiansPerSecond
         self.endTime = abs(degrees / radiansPerSecond) + self.time - self.timestep
@@ -132,8 +165,9 @@ class Sensor():
         position = robot._getRelativePosition(self.x,self.y)
         (distance, color) = course.rayCast(position[0], position[1], angle+self.angle, self.debug, self.d)
         if (distance > self.d or distance == None):
-            distance = -1
-        self.data = distance
+            self.data = -1
+            return
+        self.data = distance / course.pixelsPerMeter
 
     def getData(self):
         return self.data
@@ -194,7 +228,8 @@ class Camera():
 
 
 class Course():
-    def __init__(self, pixelsX, pixelsY, courseResolutionX, courseResolutionY):
+    def __init__(self, pixelsX, pixelsY, courseResolutionX, courseResolutionY, pixelsPerMeter=1):
+        self.pixelsPerMeter = pixelsPerMeter
         self.display = None
         self.yLength = courseResolutionY
         self.xLength = courseResolutionX

@@ -13,7 +13,7 @@ mod = 0
 # Algorithm
 # Called every 'tick' 1/FPS
 # This is a dummy algorithm that shows how to a control a robot
-def algorithm(robot, time, events):
+def algorithm(robot, time, events=None):
     global white
     global blue
     global flip
@@ -47,6 +47,9 @@ def algorithm(robot, time, events):
     for sensorName in sensorData:
         print(sensorName, 'distance =', sensorData[sensorName])
 
+    print("Angle =", robot.getAngle())
+    print("Position =", robot.getPosition())
+
     for cameraName in cameraData.keys():
         camera = cameraData[cameraName]
         # Do something
@@ -62,21 +65,22 @@ def algorithm(robot, time, events):
                 elif (object['color'] == red):
                     print("(red,{}),".format(object['size']), end="")
             print("]")
-
+    return
     if (sensorData['Front'] < 100 and sensorData['Front'] != -1):
         while (mod == 0):
             mod = random.randrange(-1,2)
         robot.rotate(700 * mod, 35)
     elif (robot.isNotMoving()):
         mod = 0
-        robot.constantMove(400)
+        robot.constantMove(10)
 
 # Pixels is the resolution on screen
 # Course resolution is the grid count used to draw a course
 course = robot_sim.Course(pixelsX=800,
                           pixelsY=800,
                           courseResolutionX=180,
-                          courseResolutionY=180)
+                          courseResolutionY=180,
+                          pixelsPerMeter=1)
 
 
 # -- Draw course --
@@ -133,7 +137,7 @@ cameras = {
                    splitCount=3, # How many splits are in the camera when showing object colors
                    resolution=40, # How many rays are in the field of view
                    debug=True,
-                   maxDistance=300
+                   maxDistance=300 # in pixels
                    )
 }
 
@@ -144,6 +148,11 @@ robot = robot_sim.RobotSim(location=(100,100),
                            width=25,
                            algorithm=algorithm,
                            sensors=sensors,
-                           cameras=cameras)
+                           cameras=cameras,
+                           startingAngle=-90,
+                           sensorError=1,
+                           positionError=1,
+                           moveError=10,
+                           rotationError=15)
 
 robot_sim.run(course, robot, FPS)
