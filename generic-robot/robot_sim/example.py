@@ -153,6 +153,7 @@ robot = robot_sim.RobotSim(location=(100,100),
                            sensorError=1,
                            positionError=1,
                            moveError=10,
-                           rotationError=15)
+                           rotationError=15,
+                           angleError=15)
 
 robot_sim.run(course, robot, FPS)
