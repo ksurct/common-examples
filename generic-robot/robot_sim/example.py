@@ -56,14 +56,7 @@ def algorithm(robot, time, events=None):
         for split in camera:
             print("[", end="")
             for object in split:
-                if (object['color'] == blue):
-                    print("(blue,{}),".format(object['size']), end="")
-                elif (object['color'] == white):
-                    print("(white,{}),".format(object['size']), end="")
-                elif (object['color'] == green):
-                    print("(green,{}),".format(object['size']), end="")
-                elif (object['color'] == red):
-                    print("(red,{}),".format(object['size']), end="")
+                print(object, end="")
             print("]")
     return
     if (sensorData['Front'] < 100 and sensorData['Front'] != -1):
@@ -140,6 +133,11 @@ cameras = {
                    maxDistance=300 # in pixels
                    )
 }
+
+cameras["main"].registerColor(blue, "Blue")
+cameras["main"].registerColor(green, "Green")
+cameras["main"].registerColor(red, "Red")
+cameras["main"].registerColor(white, "White")
 
 # Location is pixel placement in display
 # Length and width are in pixels

@@ -174,6 +174,7 @@ class Sensor():
 
 class Camera():
     def __init__(self,x,y,angle,fieldOfView,splitCount,resolution,maxDistance=None,debug=False):
+        self.colorMap = {}
         self.debug = debug
         self.maxDistance = maxDistance
         self.x = x
@@ -185,6 +186,9 @@ class Camera():
         self.data = []
         for i in range(self.splitCount):
             self.data.append([])
+
+    def registerColor(self, color, name):
+        self.colorMap[color] = name
 
     def update(self, robot, angle, course):
         position = robot._getRelativePosition(self.x,self.y)
@@ -204,7 +208,11 @@ class Camera():
             if (i >= nextSplit):
                 # Add the last color
                 oldColor = None
-                self.data[curSplit].append({"size": size, "color": color})
+                if (color != None):
+                    c = color
+                    if (color in self.colorMap):
+                        c = self.colorMap[color]
+                    self.data[curSplit].append({"size": size, "color": c})
                 size = 0
                 curSplit = curSplit + 1
                 nextSplit += numRaysInSplit
@@ -215,13 +223,20 @@ class Camera():
 
             # When we encounter a new color we record the result to the split
             if (color != oldColor and oldColor != None):
-                self.data[curSplit].append({"size": size, "color": oldColor})
+                c = oldColor
+                if (oldColor in self.colorMap):
+                    c = self.colorMap[oldColor]
+                self.data[curSplit].append({"size": size, "color": c})
                 size = 0
             oldColor = color
             value -= increment
             if (color == None):
                 size = 0
-        self.data[curSplit].append({"size": size, "color": color})
+        if (color != None):
+            c = color
+            if (color in self.colorMap):
+                c = self.colorMap[color]
+            self.data[curSplit].append({"size": size, "color": c})
 
     def getData(self):
         return self.data
