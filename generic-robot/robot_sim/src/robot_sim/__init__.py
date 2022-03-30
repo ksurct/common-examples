@@ -1,4 +1,5 @@
 import random
+from tkinter.tix import Tree
 import pymunk.pygame_util
 from pymunk import Vec2d
 import pygame
@@ -20,6 +21,7 @@ class RobotSim():
         rotationError=0,
         sensorError=0,
         ):
+        self.isRunningArc = False
         self.positionError = positionError
         self.angleError = angleError
         self.moveError = moveError
@@ -27,6 +29,7 @@ class RobotSim():
         self.sensorError = sensorError
         self.length = length
         self.width = width
+        self.arcSpeed = 0
         self.cameras = cameras
         self.sensors = sensors
         self.algorithm = algorithm
@@ -37,6 +40,7 @@ class RobotSim():
         self.robotBody.angle = radians(startingAngle)
         self.robotShape = pymunk.Poly(self.robotBody, [(0,0),(self.width,0),(self.width,self.length),(0,self.length)])
         self.robotShape.sensor = False
+        self.defaultVeloFunc = lambda body, gravity, damping, dt: None
         self.robotShape.color = (255, 100, 100, 100)
         self.robotShape.density = 0.5
         self.endTime = 0
@@ -53,6 +57,8 @@ class RobotSim():
 
     def _tick(self, events):
         self.time += self.timestep
+        if (self.isRunningArc):
+            self._constantMove(self.arcSpeed)
         self.algorithm(self, self.time, events)
         if (not self.stopped and self.endTime <= self.time and self.endTime != -1):
             self.stop()
@@ -101,56 +107,93 @@ class RobotSim():
     
     def constantMove(self, speed):
         self.stop()
-        error = (random.uniform(-self.moveError, self.moveError))
-        if (speed == 0):
-            error = 0
-        speed = speed + error
-        speed = self.course.pixelsPerMeter * -speed
-        self.robotBody.velocity = (speed * Vec2d(0, 1)).rotated(self.robotBody.angle)
         self.endTime = -1
-        self.stopped = False
+        self._constantRotate(speed)
 
     def constantRotate(self, speed):
         self.stop()
-        error = (random.uniform(-self.rotationError, self.rotationError))
-        if (speed == 0):
-            error = 0
-        speed = speed + error
-        # convert to rad
-        radiansPerSecond = speed * (pi / 180)
-        self.robotBody.angular_velocity = radiansPerSecond
         self.endTime = -1
-        self.stopped = False
+        self._constantRotate(speed)
 
     def move(self, speed, distance):
         self.stop()
+        self._move(speed, distance)
+
+    def addError(self, cur, error):
+        if (cur < 0 and cur + error > 0):
+            return 0
+        if (cur > 0 and cur + error < 0):
+            return 0
+        return cur + error
+
+    def _constantMove(self, speed):
         error = (random.uniform(-self.moveError, self.moveError))
-        speed = speed * self.course.pixelsPerMeter
-        distance = distance * self.course.pixelsPerMeter
+        if (speed == 0):
+            error = 0
+        speed = self.addError(speed, error)
+        speed = self.course.pixelsPerMeter * -speed
+        self.robotBody.velocity = (speed * Vec2d(0, 1)).rotated(self.robotBody.angle)
+        self.stopped = False
+
+    def _constantRotate(self, speed):
+        error = (random.uniform(-self.rotationError, self.rotationError))
+        if (speed == 0):
+            error = 0
+        speed = self.addError(speed, error)
+
+        # convert to rad
+        radiansPerSecond = speed * (pi / 180)
+        self.robotBody.angular_velocity = radiansPerSecond
+        self.stopped = False
+
+    def _move(self, speed, distance):
+        error = (random.uniform(-self.moveError, self.moveError))
         if (speed == 0):
             return
-        speed = speed + error
+        speed = self.addError(speed, error)
+
+        speed = speed * self.course.pixelsPerMeter
+        distance = distance * self.course.pixelsPerMeter
         self.robotBody.velocity = (-speed * Vec2d(0, 1)).rotated(self.robotBody.angle)
         self.endTime = distance / abs(speed) + self.time - self.timestep
         self.stopped = False
 
     def rotate(self, speed, degrees):
         self.stop()
+        self._rotate(speed, degrees)
+
+    def _rotate(self, speed, degrees):
         error = (random.uniform(-self.moveError, self.moveError))
         if (speed == 0):
             return
         # convert to rad
         degrees = degrees * (pi / 180)
-        speed = speed + error
+        speed = self.addError(speed, error)
         radiansPerSecond = speed * (pi / 180)
         self.robotBody.angular_velocity = radiansPerSecond
         self.endTime = abs(degrees / radiansPerSecond) + self.time - self.timestep
         self.stopped = False
 
+    def constantArcMove(self, speed, radius):
+        # Gravity at center of circle = v^2 / r
+        # angular velocity = (360 / circumference) * v
+        self.constantRotate(speed*360/(2*pi*radius))
+        self._constantMove(speed)
+        self.isRunningArc = True
+        self.arcSpeed = speed
+
+    def arcMove(self, speed, radius, distance):
+        # Gravity at center of circle = v^2 / r
+        # angular velocity = (360 / circumference) * v
+        self.constantArcMove(speed, radius)
+        self.endTime = distance / abs(speed) + self.time - self.timestep
+
     def stop(self):
         self.robotBody.angular_velocity = 0
         self.robotBody.velocity = 0,0
         self.stopped = True
+        self.isRunningArc = False
+        self.robotBody.velocity_func = self.defaultVeloFunc
 
 class Sensor():
     def __init__(self, x, y, d, angle, debug=False):
