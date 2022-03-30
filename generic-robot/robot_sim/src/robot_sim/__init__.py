@@ -108,7 +108,7 @@ class RobotSim():
     def constantMove(self, speed):
         self.stop()
         self.endTime = -1
-        self._constantRotate(speed)
+        self._constantMove(speed)
 
     def constantRotate(self, speed):
         self.stop()
