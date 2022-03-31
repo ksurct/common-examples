@@ -20,8 +20,10 @@ def algorithm(robot, time, events=None):
     global green
     global red
     global mod
+    robot.suppressUnknownMethodWarning = True
     # 'events' from pygame
     # 'time' time since start of program in seconds
+    robot.test()
     sensorData = robot.getSensorData()
     cameraData = robot.getCameraData()
     for event in events:
@@ -64,7 +66,7 @@ def algorithm(robot, time, events=None):
         robot.rotate(700 * mod, 35)
     elif (robot.isNotMoving()):
         mod = 0
-        robot.constantMove(400)
+        robot.constantMove(20)
 
 # Pixels is the resolution on screen
 # Course resolution is the grid count used to draw a course
@@ -72,13 +74,13 @@ course = robot_sim.Course(pixelsX=800,
                           pixelsY=800,
                           courseResolutionX=180,
                           courseResolutionY=180,
-                          pixelsPerMeter=10)
+                          pixelsPerMeter=5)
 
 
 # -- Draw course --
 course.createOuterWalls(c=white)
 
-course.circle(x=400,y=400,r=40,c=blue, px=True)
+course.circle(x=200,y=200,r=40,c=blue, px=True)
 
 course.box(x1=150,y1=10,x2=160,y2=180,c=green, px=False)
 

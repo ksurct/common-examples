@@ -44,6 +44,14 @@ class RobotSim():
         self.robotShape.density = 0.5
         self.endTime = 0
         self.stopped = True
+        self.suppressUnknownMethodWarning = False
+
+    # allow for generic function calls on robot
+    def __getattr__(self, name):
+        def method(*args):
+            if (not self.suppressUnknownMethodWarning):
+                print("Call to unkown method:", name)
+        return method
 
     def _setCourse(self, course):
         self.course = course
