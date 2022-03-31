@@ -46,20 +46,20 @@ def algorithm(robot, time, events=None):
     # Probable x,y coordinates
     position = robot.getPosition()
     print("------------------")
-    for sensorName in sensorData:
-        print(sensorName, 'distance =', sensorData[sensorName])
+    # for sensorName in sensorData:
+    #     print(sensorName, 'distance =', sensorData[sensorName])
 
-    print("Angle =", robot.getAngle())
-    print("Position =", robot.getPosition())
+    # print("Angle =", robot.getAngle())
+    # print("Position =", robot.getPosition())
 
     for cameraName in cameraData.keys():
         camera = cameraData[cameraName]
         # Do something
-        for split in camera:
-            print("[", end="")
-            for object in split:
-                print(object, end="")
-            print("]")
+        # for split in camera:
+        #     print("[", end="")
+        #     for object in split:
+        #         print(object, end="")
+        #     print("]")
     if (sensorData['Front'] < 100 and sensorData['Front'] != -1):
         while (mod == 0):
             mod = random.randrange(-1,2)
@@ -150,6 +150,7 @@ robot = robot_sim.RobotSim(location=(20,40),
                            positionError=0,
                            moveError=0,
                            rotationError=0,
-                           angleError=0)
+                           angleError=0,
+                           debugPrints=False)
 
 robot_sim.run(course, robot, FPS)

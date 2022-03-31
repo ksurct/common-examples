@@ -19,7 +19,9 @@ class RobotSim():
         moveError=0,
         rotationError=0,
         sensorError=0,
+        debugPrints=False
         ):
+        self.debugPrints=debugPrints
         self.isRunningArc = False
         self.positionError = positionError
         self.angleError = angleError
@@ -45,6 +47,10 @@ class RobotSim():
         self.endTime = 0
         self.stopped = True
         self.suppressUnknownMethodWarning = False
+
+    def _log(self, msg):
+        if (self.debugPrints):
+            print("robot_sim", msg)
 
     # allow for generic function calls on robot
     def __getattr__(self, name):
@@ -113,16 +119,19 @@ class RobotSim():
         return self.stopped
     
     def constantMove(self, speed):
+        self._log("Constant move mps:%f" % speed)
         self.stop()
         self.endTime = -1
         self._constantMove(speed)
 
     def constantRotate(self, speed):
+        self._log("Constant rotate dps:%f" % speed)
         self.stop()
         self.endTime = -1
         self._constantRotate(speed)
 
     def move(self, speed, distance):
+        self._log("Move mps%f, meters:%f" % (speed, distance))
         self.stop()
         self._move(speed, distance)
 
@@ -166,6 +175,7 @@ class RobotSim():
         self.stopped = False
 
     def rotate(self, speed, degrees):
+        self._log("Rotate dps:%f, degrees:%f" % (speed, degrees))
         self.stop()
         self._rotate(speed, degrees)
 
