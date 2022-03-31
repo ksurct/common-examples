@@ -72,18 +72,15 @@ course = robot_sim.Course(pixelsX=800,
                           pixelsY=800,
                           courseResolutionX=180,
                           courseResolutionY=180,
-                          pixelsPerMeter=1)
+                          pixelsPerMeter=10)
 
 
 # -- Draw course --
 course.createOuterWalls(c=white)
 
-course.circle(x=100,y=100,r=20,c=blue)
-course.circle(x=50,y=180,r=10,c=red)
-course.circle(x=75,y=25,r=5,c=green)
+course.circle(x=400,y=400,r=40,c=blue, px=True)
 
-course.box(x1=150,y1=10,x2=160,y2=180,c=green)
-course.box(x1=30,y1=150,x2=40,y2=40,c=red)
+course.box(x1=150,y1=10,x2=160,y2=180,c=green, px=False)
 
 
 

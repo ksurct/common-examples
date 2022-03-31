@@ -312,11 +312,21 @@ class Course():
     def setCourse(self, course):
         self.course = course
     
-    def circle(self, x, y, r, c):
+    def circle(self, x, y, r, c, px=False):
+        if (px):
+            x = x * (self.xLength / self.pixelsX)
+            y = y * (self.yLength / self.pixelsY)
+            r = r * (self.xLength / self.pixelsX)
         for i in range(0,720,1):
-            self.set(round(cos(radians(i/2))*r + x), round(sin(radians(i/2))*r + y), c)
+            self._set(round(cos(radians(i/2))*r + x), round(sin(radians(i/2))*r + y), c, False)
 
-    def line(self, x1,y1,x2,y2, c):
+    def _set(self, x,y,c,px):
+        if (px):
+            self.setPx(x,y,c)
+        else:
+            self.set(x,y,c)
+
+    def line(self, x1,y1,x2,y2, c, px=False):
         slope = 1000 
         if x2 != x1:
             if (x1 > x2):
@@ -328,7 +338,7 @@ class Course():
             # Draw over horizontal
             for x in range(x1,x2):
                 y = slope * (x - x1) + y1
-                self.set(x,y,c)
+                self._set(x,y,c,px)
         else:
             if (y1 > y2):
                 temp = y1
@@ -338,7 +348,7 @@ class Course():
             slope = (x2 - x1) / (y2 - y1)
             for y in range(y1,y2):
                 x = round(slope * (y - y1) + x1)
-                self.set(x,y,c)
+                self._set(x,y,c,px)
 
     # Stolen from C:
     # https://github.com/3DSage/OpenGL-Raycaster_v1/blob/master/3DSage_Raycaster_v1.c
@@ -435,17 +445,20 @@ class Course():
             return
         self.course[int(x + self.xLength * y)] = color
 
+    def setPx(self,x,y, color):
+        self.set(x * (self.xLength  / self.pixelsX), y * (self.yLength  / self.pixelsY), color)
+
     def createOuterWalls(self, c):
         self.line(0,0,0,self.yLength, c)
         self.line(self.xLength - 1,0,self.xLength - 1,self.yLength, c)
         self.line(0,0,self.xLength,0, c)
         self.line(0,self.yLength - 1,self.xLength,self.yLength - 1, c)
 
-    def box(self, x1,y1,x2,y2, c):
-        self.line(x1,y1,x1,y2, c)
-        self.line(x2,y1,x2,y2, c)
-        self.line(x1,y1,x2,y1, c)
-        self.line(x1,y2,x2,y2, c)
+    def box(self, x1,y1,x2,y2, c, px=False):
+        self.line(x1,y1,x1,y2, c, px)
+        self.line(x2,y1,x2,y2, c, px)
+        self.line(x1,y1,x2,y1, c, px)
+        self.line(x1,y2,x2,y2, c, px)
 
     def _createCourse(self, space):
         for x in range(self.xLength):
