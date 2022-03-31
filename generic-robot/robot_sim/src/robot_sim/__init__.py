@@ -1,5 +1,4 @@
 import random
-from tkinter.tix import Tree
 import pymunk.pygame_util
 from pymunk import Vec2d
 import pygame

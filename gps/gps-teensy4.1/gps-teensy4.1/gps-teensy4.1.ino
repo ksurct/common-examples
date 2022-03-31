@@ -8,7 +8,7 @@ TinyGPS gps;
 /* the "Serial" object uses the USB port, leaving the UART free. */
 //HardwareSerial Uart = HardwareSerial();
 #define Uart Serial2
-void gpsdump(TinyGPS &gps);
+void gpsdump(TinyGPS &gps);__SENSORS_HPP__
 void printFloat(double f, int digits = 2);
 
 void setup()
