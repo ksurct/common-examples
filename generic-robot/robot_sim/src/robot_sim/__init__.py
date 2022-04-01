@@ -21,6 +21,8 @@ class RobotSim():
         sensorError=0,
         debugPrints=False
         ):
+        self.initialAngle = 0
+        self.initialPosition = 0,0
         self.debugPrints=debugPrints
         self.isRunningArc = False
         self.positionError = positionError
@@ -47,6 +49,7 @@ class RobotSim():
         self.endTime = 0
         self.stopped = True
         self.suppressUnknownMethodWarning = False
+        self.initPosition()
 
     def _log(self, msg):
         if (self.debugPrints):
@@ -67,6 +70,14 @@ class RobotSim():
 
     def _setTimestep(self, step):
         self.timestep = step
+
+    def initAngle(self):
+        self.initialAngle = self._getAngle()
+        self._log("Init angle (%f)" % self.initialAngle)
+
+    def initPosition(self):
+        self.initialPosition = self._getRelativePosition(self.width/2, self.length/2)
+        self._log("Init posistion {}".format(self.initialPosition))
 
     def _tick(self, events):
         self.time += self.timestep
@@ -89,15 +100,38 @@ class RobotSim():
             (self.robotBody.position[1] + cos(-self.robotBody.angle - angle)*h)
         )
 
+    def _getAngle(self):
+        return (self.robotBody.angle * 180 / pi) + (random.uniform(-self.angleError, self.angleError))
+
     # Public:
     def getAngle(self):
-        return (self.robotBody.angle * 180 / pi) + (random.uniform(-self.angleError, self.angleError))
+        angle = self._getAngle() - self.initialAngle
+        print("Starting at", angle)
+        while (angle > 360):
+            angle -= 360
+            print("Going1", angle)
+        t = False
+        while (angle < -360):
+            angle += 360
+            print("Going2", angle)
+        if (angle > 180):
+            angle -= 360
+            print("Going3", angle)
+        if (angle < -180):
+            angle += 360
+            print("Going4", angle)
+        return (angle) + (random.uniform(-self.angleError, self.angleError))
+
+    def _convertToRelativeCoord(self, pos):
+        return sin(radians(self.initialAngle)) * pos[0] , cos(radians(self.initialAngle)) * pos[1]
 
     def getPosition(self):
         val = self._getRelativePosition(self.width/2, self.length/2)
+        val = self._convertToRelativeCoord(val)
+        offset = self._convertToRelativeCoord(self.initialPosition)
         return  (
-            (val[0] / self.course.pixelsPerMeter) + (random.uniform(-self.positionError, self.positionError)),
-            (val[1] / self.course.pixelsPerMeter) + (random.uniform(-self.positionError, self.positionError))
+            ((val[0] - offset[0]) / self.course.pixelsPerMeter) + (random.uniform(-self.positionError, self.positionError)),
+            ((val[1] - offset[1]) / self.course.pixelsPerMeter) + (random.uniform(-self.positionError, self.positionError))
         )
 
     def getSensorData(self):

@@ -33,40 +33,40 @@ def algorithm(robot, time, events=None):
         elif event.type == pygame.KEYDOWN and event.key == pygame.K_LEFT:
             robot.rotate(-90, 45)
         elif event.type == pygame.KEYDOWN and event.key == pygame.K_UP:
-            robot.move(100, 200)
+            robot.move(100, 30)
         elif event.type == pygame.KEYDOWN and event.key == pygame.K_DOWN:
-            robot.move(-100, 200)
+            robot.move(-100, 30)
         elif event.type == pygame.KEYUP and event.key == pygame.K_RIGHT:
             robot.rotate(90, 45)
         elif event.type == pygame.KEYUP and event.key == pygame.K_q:
             robot.stop()
+        elif event.type == pygame.KEYDOWN and event.key == pygame.K_i:
+            robot.initPosition() 
+            robot.initAngle() 
+        elif event.type == pygame.KEYDOWN and event.key == pygame.K_d:
+            angle = robot.getAngle()
+            position = robot.getPosition()
+            print("------------------")
+            print("Angle =", robot.getAngle())
+            print("Position =", robot.getPosition())
 
     # in degrees
-    angle = robot.getAngle()
-    # Probable x,y coordinates
-    position = robot.getPosition()
-    print("------------------")
-    # for sensorName in sensorData:
-    #     print(sensorName, 'distance =', sensorData[sensorName])
 
-    # print("Angle =", robot.getAngle())
-    # print("Position =", robot.getPosition())
-
-    for cameraName in cameraData.keys():
-        camera = cameraData[cameraName]
-        # Do something
-        # for split in camera:
-        #     print("[", end="")
-        #     for object in split:
-        #         print(object, end="")
-        #     print("]")
-    if (sensorData['Front'] < 100 and sensorData['Front'] != -1):
-        while (mod == 0):
-            mod = random.randrange(-1,2)
-        robot.rotate(700 * mod, 35)
-    elif (robot.isNotMoving()):
-        mod = 0
-        robot.constantMove(20)
+    # for cameraName in cameraData.keys():
+    #     camera = cameraData[cameraName]
+    #     # Do something
+    #     # for split in camera:
+    #     #     print("[", end="")
+    #     #     for object in split:
+    #     #         print(object, end="")
+    #     #     print("]")
+    # if (sensorData['Front'] < 100 and sensorData['Front'] != -1):
+    #     while (mod == 0):
+    #         mod = random.randrange(-1,2)
+    #     robot.rotate(700 * mod, 35)
+    # elif (robot.isNotMoving()):
+    #     mod = 0
+    #     robot.constantMove(20)
 
 # Pixels is the resolution on screen
 # Course resolution is the grid count used to draw a course
@@ -151,6 +151,6 @@ robot = robot_sim.RobotSim(location=(20,40),
                            moveError=0,
                            rotationError=0,
                            angleError=0,
-                           debugPrints=False)
+                           debugPrints=True)
 
 robot_sim.run(course, robot, FPS)
