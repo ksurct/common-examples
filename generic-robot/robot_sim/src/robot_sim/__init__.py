@@ -106,24 +106,21 @@ class RobotSim():
     # Public:
     def getAngle(self):
         angle = self._getAngle() - self.initialAngle
-        print("Starting at", angle)
         while (angle > 360):
             angle -= 360
-            print("Going1", angle)
-        t = False
         while (angle < -360):
             angle += 360
-            print("Going2", angle)
         if (angle > 180):
             angle -= 360
-            print("Going3", angle)
         if (angle < -180):
             angle += 360
-            print("Going4", angle)
         return (angle) + (random.uniform(-self.angleError, self.angleError))
 
     def _convertToRelativeCoord(self, pos):
-        return sin(radians(self.initialAngle)) * pos[0] , cos(radians(self.initialAngle)) * pos[1]
+        return (
+            cos(radians(self.initialAngle)) * pos[0] + sin(radians(self.initialAngle)) * pos[1],
+            sin(radians(self.initialAngle)) * pos[0] - cos(radians(self.initialAngle)) * pos[1]
+        )
 
     def getPosition(self):
         val = self._getRelativePosition(self.width/2, self.length/2)
@@ -165,7 +162,7 @@ class RobotSim():
         self._constantRotate(speed)
 
     def move(self, speed, distance):
-        self._log("Move mps%f, meters:%f" % (speed, distance))
+        self._log("Move mps:%f, meters:%f" % (speed, distance))
         self.stop()
         self._move(speed, distance)
 
