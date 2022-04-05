@@ -244,8 +244,9 @@ class RobotSim():
         self.robotBody.velocity_func = self.defaultVeloFunc
 
 class Sensor():
-    def __init__(self, x, y, d, angle, debug=False):
+    def __init__(self, x, y, d, angle, coneAngle=0, debug=False):
         self.x = x
+        self.coneAngle = int(coneAngle)
         self.debug = debug
         self.y = y
         self .d = d
@@ -254,8 +255,22 @@ class Sensor():
 
     def update(self, robot, angle, course):
         position = robot._getRelativePosition(self.x,self.y)
-        (distance, color) = course.rayCast(position[0], position[1], angle+self.angle, self.debug, self.d)
-        if (distance > self.d or distance == None):
+        if (self.coneAngle == 0):
+            (distance, color) = course.rayCast(position[0], position[1], angle+self.angle, self.debug, self.d)
+        else:
+            avg = 0
+            count = 0
+            for a in range(-int(self.coneAngle/2), int(self.coneAngle/2)+1):
+                (distance, color) = course.rayCast(position[0], position[1], angle+self.angle+radians(a), self.debug, self.d)
+                if (distance < self.d):
+                    avg += distance
+                    count += 1
+            if (count):
+                distance = avg / count
+            else:
+                self.data = -1
+                return
+        if (distance == None or distance > self.d):
             self.data = -1
             return
         self.data = distance / course.pixelsPerMeter

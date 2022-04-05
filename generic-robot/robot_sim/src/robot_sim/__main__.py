@@ -49,6 +49,8 @@ def algorithm(robot, time, events=None):
             print("------------------")
             print("Angle =", robot.getAngle())
             print("Position =", robot.getPosition())
+        print("Front: ", robot.getSensorData()["Front"])
+        print("Front2: ", robot.getSensorData()["Front2"])
 
     # in degrees
 
@@ -104,7 +106,8 @@ sensors = {
     "BL": robot_sim.Sensor(x=0,y=0,d=300,angle=-90,debug=False),
     "BR": robot_sim.Sensor(x=25,y=0,d=300,angle=90,debug=False),
     "TR": robot_sim.Sensor(x=25,y=50,d=300,angle=90,debug=False),
-    "Front": robot_sim.Sensor(x=12.5,y=50,d=300,angle=0,debug=True)
+    "Front": robot_sim.Sensor(x=12.5,y=50,d=300,angle=0,debug=True,coneAngle=10),
+    "Front2": robot_sim.Sensor(x=12.5,y=50,d=300,angle=0,debug=True)
 }
 
 # Cameras:
